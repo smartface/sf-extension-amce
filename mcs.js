@@ -53,7 +53,6 @@ class MCS {
         privates[this].authorization = 'Basic ' + Base64.encode(options.username + ':' + options.password);
     }
 
-
     /**
      * login to MCS
      * @method
@@ -76,13 +75,12 @@ class MCS {
      */
     login(options, callback) {
         const p = privates.get(this);
-        const username = options.username;
-        const password = options.password;
-        const url = p.baseUrl + '/mobile/platform/users/' + username;
+        const { username, password } = options;
+        const url = `${p.baseUrl}/mobile/platform/users/${username}`;
         const headers = {
-            'oracle-mobile-api-version': '1.0',
+            'Oracle-Mobile-API-Version': '1.0',
             'Content-Type': 'application/json; charset=utf-8',
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': 'Basic ' + Base64.encode(username + ':' + password)
         };
         getHttp().then(http => {
@@ -100,9 +98,7 @@ class MCS {
                         callback(null, e.body.toString());
                     }
                 },
-                'onError': function(e) {
-                    callback(e);
-                }
+                'onError': callback
             });
         });
     }
@@ -113,7 +109,6 @@ class MCS {
      * @param {string} result - json result
      */
 
-
     /**
      * Logs out authenticated user, using Anonymous Key if provided
      * @method
@@ -122,7 +117,6 @@ class MCS {
         const p = privates.get(this);
         p.authorization = p.anonymousKey ? "Basic " + p.anonymousKey : "";
     }
-
 
     /**
      * Register device push notification token to MCS
@@ -147,8 +141,7 @@ class MCS {
      */
     registerDeviceToken(options, callback) {
         const p = privates.get(this);
-        const packageName = options.packageName;
-        const version = options.version;
+        const { packageName, version } = options;
         const mcs = this;
 
         Notications.registerForPushNotifications(
@@ -156,10 +149,10 @@ class MCS {
                 p.deviceToken = e.token;
                 mcs.notificationToken = e.token;
                 const notificationProvider = (System.OS == 'iOS') ? 'APNS' : 'GCM';
-                const url = p.baseUrl + '/mobile/platform/devices/register';
+                const url = `${p.baseUrl}/mobile/platform/devices/register`;
                 const headers = {
                     'Content-Type': 'application/json; charset=utf-8',
-                    'Oracle-Mobile-Backend-Id': p.backendID,
+                    'Oracle-Mobile-Backend-ID': p.backendID,
                     'Authorization': p.authorization
                 };
                 const body = {
@@ -169,7 +162,6 @@ class MCS {
                         id: packageName,
                         version: version,
                         platform: (System.OS == 'iOS') ? 'IOS' : 'ANDROID'
-
                     }
                 };
                 getHttp().then(http => {
@@ -192,11 +184,8 @@ class MCS {
                             else {
                                 callback(null, response);
                             }
-
                         },
-                        'onError': function(e) {
-                            callback(e);
-                        }
+                        'onError': callback
                     });
                 });
             },
@@ -211,7 +200,6 @@ class MCS {
      * @param {string} result - json result
      */
 
-
     /**
      * Deregister device push notification token from MCS
      * @method
@@ -223,12 +211,13 @@ class MCS {
         const p = privates.get(this);
         Notications.registerForPushNotifications(
             function(e) {
-                const packageName = options.packageName;
+                const { packageName } = options;
                 const notificationProvider = (System.OS == 'iOS') ? 'APNS' : 'GCM';
-                const url = p.baseUrl + '/mobile/platform/devices/deregister';
+                const url = `${p.baseUrl}/mobile/platform/devices/deregister`;
+
                 const headers = {
                     'Content-Type': 'application/json; charset=utf-8',
-                    'Oracle-Mobile-Backend-Id': p.backendID,
+                    'Oracle-Mobile-Backend-ID': p.backendID,
                     'Authorization': p.authorization
                 };
                 const body = {
@@ -237,7 +226,6 @@ class MCS {
                     mobileClient: {
                         id: packageName,
                         platform: (System.OS == 'iOS') ? 'IOS' : 'ANDROID'
-
                     }
                 };
                 getHttp().then(http => {
@@ -249,9 +237,7 @@ class MCS {
                         'onLoad': function(e) {
                             callback(null, 'Device Deleted.');
                         },
-                        'onError': function(e) {
-                            callback(e);
-                        }
+                        'onError': callback
                     });
                 });
             },
@@ -282,20 +268,20 @@ class MCS {
         const sessionID = options.sessionId || sessionId;
         const jsonBody = options.body;
         const applicationKey = (System.OS == 'iOS') ? p.iOSApplicationKey : p.androidApplicationKey;
+        const url = `${p.baseUrl}/mobile/platform/analytics/events`;
+        const body = jsonBody;
 
         if (typeof jsonBody === "object")
             jsonBody = JSON.stringify(jsonBody);
 
-        const url = p.baseUrl + '/mobile/platform/analytics/events';
         const headers = {
-            'Oracle-Mobile-Backend-Id': p.backendID,
-            'authorization': p.authorization,
+            'Oracle-Mobile-Backend-ID': p.backendID,
+            'Authorization': p.authorization,
             'Content-Type': 'application/json; charset=utf-8',
-            'oracle-mobile-application-key': applicationKey,
-            'oracle-mobile-analytics-session-id': sessionID,
-            'oracle-mobile-device-id': deviceID,
+            'Oracle-Mobile-Application-Key': applicationKey,
+            'Oracle-Mobile-Analytics-Session-ID': sessionID,
+            'Oracle-Mobile-Device-ID': deviceID,
         };
-        const body = jsonBody;
 
         getHttp().then(http => {
             http.request({
@@ -316,7 +302,6 @@ class MCS {
                     alert("Error " + e);
                     callback && callback(e);
                 }
-
             });
         });
     }
@@ -341,7 +326,6 @@ class MCS {
             "timestamp": new Date().toISOString()
         }];
         this.sendAnalytic({ body }, callback);
-
     }
 
     /**
@@ -366,7 +350,7 @@ class MCS {
     flushEvents(callback) {
         const p = privates.get(this);
         if (p.eventStore.length > 0) {
-            var eventCache = p.eventStore.slice();
+            let eventCache = p.eventStore.slice();
             p.eventStore.length = 0;
 
             this.sendAnalytic({ body: eventCache }, (err, result) => {
@@ -411,8 +395,6 @@ class MCS {
         return !!privates[this].autoFlushEventsTimerId;
     }
 
-
-
     /**
      * @callback MCS~sendBasicEventCallback
      * @param {string} err - Error
@@ -421,7 +403,6 @@ class MCS {
      *  {"message": "1 events accepted for processing."}
      */
 
-
     /**
      * Get all collections list from MCS
      * @method
@@ -429,11 +410,10 @@ class MCS {
      */
     getCollectionList(callback) {
         const p = privates.get(this);
-        const url = p.baseUrl + '/mobile/platform/storage/collections';
+        const url = `${p.baseUrl}/mobile/platform/storage/collections`;
         const headers = {
-            'oracle-mobile-api-version': '1.0',
             'Content-Type': 'application/json; charset=utf-8',
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': p.authorization
         };
         getHttp().then(http => {
@@ -457,10 +437,7 @@ class MCS {
                         callback(null, resultArr);
                     }
                 },
-                'onError': function(e) {
-                    callback(e);
-                }
-
+                'onError': callback
             });
         });
     }
@@ -472,7 +449,6 @@ class MCS {
      * @param {string} result[].description - collection description
      */
 
-
     /**
      * Get item list in collection from MCS
      * @method
@@ -482,12 +458,12 @@ class MCS {
      */
     getItemListInCollection(options, callback) {
         const p = privates.get(this);
-        const collectionId = (options && options.collectionId) || options;
-        const url = p.baseUrl + '/mobile/platform/storage/collections/' + collectionId + '/objects';
+        const collectionId = options ? options.collectionId : options;
+        const url = `${p.baseUrl}/mobile/platform/storage/collections/${collectionId}/objects`;
         const headers = {
-            'oracle-mobile-api-version': '1.0',
+            'Oracle-Mobile-API-Version': '1.0',
             'Content-Type': 'application/json; charset=utf-8',
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': p.authorization
         };
         getHttp().then(http => {
@@ -505,9 +481,7 @@ class MCS {
                     }
 
                 },
-                'onError': function(e) {
-                    callback(e);
-                }
+                'onError': callback
             });
         });
     }
@@ -524,7 +498,6 @@ class MCS {
      * @param {string} result[].modifiedOn - item modifiedOn
      */
 
-
     /**
      * Get item data from MCS
      * @method
@@ -536,13 +509,13 @@ class MCS {
      */
     getItem(options, callback) {
         const p = privates.get(this);
-        const collectionId = (options && options.collectionId) || options;
+        const collectionId = options.collectionId;
         const itemId = options.itemId;
-        const url = p.baseUrl + '/mobile/platform/storage/collections/' + collectionId + '/objects/' + itemId;
+        const url = `${p.baseUrl}/mobile/platform/storage/collections/${collectionId}/objects/${itemId}`;
         const headers = {
-            'oracle-mobile-api-version': '1.0',
+            'Oracle-Mobile-API-Version': '1.0',
             'Content-Type': 'application/json; charset=utf-8',
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': p.authorization
         };
         getHttp().then(http => {
@@ -553,9 +526,7 @@ class MCS {
                 'onLoad': function(e) {
                     callback(null, e);
                 },
-                'onError': function(e) {
-                    callback(e);
-                }
+                'onError': callback
             });
         });
     }
@@ -577,14 +548,10 @@ class MCS {
      */
     storeItem(options, callback) {
         const p = privates.get(this);
-        const collectionId = (options && options.collectionId) || options;
-        const itemName = options.itemName;
-        const base64EncodeData = options.base64EncodeData;
-        const contentType = options.contentType;
-        const url = p.baseUrl + '/mobile/platform/storage/collections/' + collectionId + '/objects';
+        const { collectionId, itemName, base64EncodeData, contentType } = options;
+        const url = `${p.baseUrl}/mobile/platform/storage/collections/${collectionId}/objects`;
         const headers = {
-            //'Content-Type': 'application/json',
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': p.authorization,
             'Oracle-Mobile-Name': itemName,
             'Content-Type': contentType
@@ -599,10 +566,7 @@ class MCS {
                 'onLoad': function(e) {
                     callback(null, e.body.toString());
                 },
-                'onError': function(e) {
-                    callback(e);
-                }
-
+                'onError': callback
             });
         });
     }
@@ -645,12 +609,11 @@ class MCS {
      */
     deleteItem(options, callback) {
         const p = privates.get(this);
-        const collectionId = options.collectionId;
-        const itemId = options.itemId;
-        const url = p.baseUrl + '/mobile/platform/storage/collections/' + collectionId + '/objects/' + itemId +
-            "?v=" + Math.floor(Math.random() * 100000); //added due to the SUPDEV-470 workaround
+        const { collectionId, itemId } = options;
+        const random = Math.floor(Math.random() * 100000); // Added due to the SUPDEV-470 workaround
+        const url = `${p.baseUrl}/mobile/platform/storage/collections/${collectionId}/objects/${itemId}?v=${random}`;
         const headers = {
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': p.authorization
         };
         getHttp().then(http => {
@@ -661,10 +624,7 @@ class MCS {
                 'onLoad': function(e) {
                     callback(null, 'Item Deleted.');
                 },
-                'onError': function(e) {
-                    callback(e);
-                }
-
+                'onError': callback
             });
         });
     }
@@ -685,21 +645,15 @@ class MCS {
      */
     createRequestOptions(options) {
         const p = privates.get(this);
-        const version = options.version || "1.0";
-        const apiName = options.apiName;
-        const endpointPath = options.endpointPath;
-        const urlBase = p.baseUrl + '/mobile/custom/' + apiName + '/' + endpointPath;
-        const headersBase = {
+        const { version = "1.0", apiName, endpointPath } = options;
+        const url = `${p.baseUrl}/mobile/custom/${apiName}/${endpointPath}`;
+        const headers = {
             'Content-Type': 'application/json',
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': p.authorization,
-            'oracle-mobile-api-version': version
+            'Oracle-Mobile-API-Version': version
         };
-        return {
-            url: urlBase,
-            headers: headersBase
-        };
-
+        return { url, headers };
     }
 
     /**
@@ -709,10 +663,10 @@ class MCS {
      */
     getAppPolicies(callback) {
         const p = privates.get(this);
-        const url = p.baseUrl + '/mobile/platform/appconfig/client';
+        const url = `${p.baseUrl}/mobile/platform/appconfig/client`;
         const headers = {
             'Content-Type': 'application/json',
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': p.authorization
         };
         getHttp().then(http => {
@@ -723,9 +677,7 @@ class MCS {
                 'onLoad': function(e) {
                     callback(null, e.body.toString());
                 },
-                'onError': function(e) {
-                    callback(e);
-                }
+                'onError': callback
             });
         });
     }
@@ -734,7 +686,6 @@ class MCS {
      * @param {string} err - Error
      * @param {string} result
      */
-
 
     /**
      * Get Device Location List by Name
@@ -757,7 +708,6 @@ class MCS {
      * @param {string} err - Error
      * @param {string} result
      */
-
 
     /**
      * Get Device Location List by Id
@@ -782,7 +732,6 @@ class MCS {
      * @param {string} result
      */
 
-
     /**
      * Get Places List by Name
      * @method
@@ -804,8 +753,6 @@ class MCS {
      * @param {string} err - Error
      * @param {string} result
      */
-
-
 
     /**
      * Get Places List by Id,
@@ -830,7 +777,6 @@ class MCS {
      * @param {string} result
      */
 
-
     /**
      * Get Asset List by Name
      * @method
@@ -854,7 +800,6 @@ class MCS {
      * @param {string} result
      */
 
-
     /**
      * Get Asset List by Id
      * @method
@@ -871,14 +816,12 @@ class MCS {
             isQuery: false
         };
         this.getLocationList(optionsLocal, callback);
-
     }
     /**
      * @callback MCS~getAssetByIdCallback
      * @param {string} err - Error
      * @param {string} result
      */
-
 
     /**
      * Get Location List Base Function
@@ -892,12 +835,8 @@ class MCS {
      */
     getLocationList(options, callback) {
         const p = privates.get(this);
-        const key = options.key;
-        const value = options.value;
-        const pathStr = options.pathStr;
-        const isQuery = options.isQuery;
-
-        var url = p.baseUrl + '/mobile/platform/location/' + pathStr;
+        const { key, value, pathStr, isQuery } = options;
+        var url = `${p.baseUrl}/mobile/platform/location/${pathStr}`;
         if (isQuery) {
             url += '?' + key + '=' + value;
         }
@@ -906,7 +845,7 @@ class MCS {
         }
         const headers = {
             'Content-Type': 'application/json',
-            'Oracle-Mobile-Backend-Id': p.backendID,
+            'Oracle-Mobile-Backend-ID': p.backendID,
             'Authorization': p.authorization,
             key: value
         };
@@ -919,10 +858,7 @@ class MCS {
                 'onLoad': function(e) {
                     callback(null, e.body.toString());
                 },
-                'onError': function(e) {
-                    callback(e);
-                }
-
+                'onError': callback
             });
         });
     }
@@ -931,14 +867,9 @@ class MCS {
      * @param {string} err - Error
      * @param {string} result
      */
-
-
 }
 
-
 module.exports = MCS;
-
-
 
 function uuid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
