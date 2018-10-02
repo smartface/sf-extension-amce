@@ -1,81 +1,70 @@
-# MCS Extension from Smartface
+# AMCE Extension from Smartface
 [![Twitter: @Smartface_io](https://img.shields.io/badge/contact-@Smartface_io-blue.svg?style=flat)](https://twitter.com/smartface_io)
-[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://raw.githubusercontent.com/smartface/sf-extension-spriteview/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/smartface/sf-extension-amce/blob/master/LICENSE)
+![npm version](https://img.shields.io/npm/v/sf-extension-amce.svg?style=flat)
 
-An extension to Oracle MCS Connection with Smartface Native Framework.
-
+An extension to Oracle AMCE Connection with Smartface Native Framework.
 
 ## Installation
-MCS Extension can be installed via npm easily from our public npm repository. The installation is pretty easy via Smartface Cloud IDE.
+AMCE Extension can be installed via npm easily from our public npm repository. The installation is pretty easy via Smartface Cloud IDE.
 
 - Open terminal
-- `(cd ~/workspace/scripts && npm i -S sf-extension-mcs)`
-- Finally require the extension as: `require("sf-extension-mcs")`
+- `(cd ~/workspace/scripts && npm i -S sf-extension-amce)`
+- Finally require the extension as: `require("sf-extension-amce")`
 
 ## How to use
-
-1) Init your MCS config
-
+1) Init your AMCE config
 ```javascript
-const MCS = require('sf-extension-mcs');
+const AMCE = require('sf-extension-amce');
 var options = {
-	'backendId': 'YOUR BACKEND ID', //required
-	'baseUrl': 'YOUR BASE URL', //required
-	'androidApplicationKey': 'YOUR ANDROID APP KEY', //required only for analytics & events
-	'iOSApplicationKey': 'YOUR IOS APP KEY', //required only for analytics & events
-	'anonymousKey': 'YOUR BASIC AUTHENTICATION ANONYMOUS KEY' //required only to perform operations without logging in first
+	'backendId': 'YOUR BACKEND ID', // Required
+	'baseUrl': 'YOUR BASE URL', // Required
+	'androidApplicationKey': 'YOUR ANDROID APP KEY', // Required only for analytics & events
+	'iOSApplicationKey': 'YOUR IOS APP KEY', // Required only for analytics & events
+	'anonymousKey': 'YOUR BASIC AUTHENTICATION ANONYMOUS KEY' // Required only to perform operations without logging in first
 };
-var mcs = new MCS(options);
+var amce = new AMCE(options);
 ```
 
-2) Login to MCS (Example)
+2) Login to AMCE (Example)
 ```javascript
-mcs.login({
-	'username': 'YOUR USER NAME',
-	'password': 'YOUR PASSWORD'
-},
-
-function(err, result) {
-
-	loadingView.visible = false;
-
-	if (err) {
-		return alert("LOGIN FAILED.  " + err);
-	}
-
-	alert("LOGIN SUCCESS.  " + result);	
-
-});
+amce.login({
+		'username': 'YOUR USER NAME',
+		'password': 'YOUR PASSWORD'
+	})
+	.then(e => {
+		alert("login succeeded");
+	})
+	.catch(e => {
+		alert("login failed");
+	});
 ```
 3) Send Basic Analytic Event (Example)
 ```javascript
-var optionsAnalytic = {
-	'deviceID': '112233', //required
-	'sessionID': '112233', //required
+var options = {
+	'deviceID': '112233', // Required
+	'sessionID': '112233', // Required
 	'eventName': 'sendBasicEvent'
 };
+amce.sendBasicEvent(options)
+    .then(e => {
+		alert("sendBasicEvent succeeded");
+    })
+    .catch(e => {
+		alert("sendBasicEvent failed");
+    });
 
-mcs.sendBasicEvent(optionsAnalytic, function(err, result) {
-
-	if (err) {
-		return alert("sendBasicEvent FAILED.  " + err);
-	}
-
-	alert("sendBasicEvent SUCC.  " + result.toString());
-
-});
 ```
 
 ## API Documentation
 Full api documentation is in [api.md](./api.md)
 
 ## Need Help?
-
-Please [submit an issue](https://github.com/msmete/sf-extension-mcs/issues) on GitHub and provide information about your problem.
+Please [submit an issue](https://github.com/msmete/sf-extension-amce/issues) on GitHub and provide information about your problem.
 
 ## Support & Documentation & Useful Links
-- [Guides](https://developer.smartface.io/)
-- [API Docs](http://ref.smartface.io/)
+- [Guides](https://developer.smartface.io)
+- [API Docs](http://ref.smartface.io)
 - [Smartface Cloud Dashboard](https://cloud.smartface.io)
 
 ## Code of Conduct
@@ -83,5 +72,4 @@ We are committed to making participation in this project a harassment-free exper
 Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## License
-
 This project is licensed under the terms of the MIT license. See the [LICENSE](./LICENSE) file. Within the scope of this license, all modifications to the source code, regardless of the fact that it is used commercially or not, shall be committed as a contribution back to this repository.

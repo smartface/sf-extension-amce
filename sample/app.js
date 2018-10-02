@@ -5,18 +5,16 @@ const Router = require("sf-core/ui/router");
 
 // Set uncaught exception handler, all exceptions that are not caught will
 // trigger onUnhandledError callback.
-Application.onUnhandledError = function (e) {
+Application.onUnhandledError = function(e) {
     alert({
         title: lang.applicationError,
         message: e.message + "\n\n*" + e.sourceURL + "\n*" + e.line + "\n*" + e.stack
     });
 };
 
-
 // Define routes and go to initial page of application
-Router.add("page1", require("./pages/page1"));
-Router.add("page2", require("./pages/page2"));
-Router.add("page3", require("./pages/page3"));
-Router.add("imagePage", require("./pages/imagePage"));
-
+Router.add("page1", "/pages/page1");
+Router.add("page2", "/pages/page2");
+Router.add("page3", "/pages/page3");
+Router.add("imagePage", "/pages/imagePage");
 Router.go("page1");

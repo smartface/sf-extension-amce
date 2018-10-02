@@ -5,11 +5,10 @@ const Router = require("sf-core/ui/router");
 const Color = require('sf-core/ui/color');
 const FlexLayout = require('sf-core/ui/flexlayout');
 const ActivityIndicator = require('sf-core/ui/activityindicator');
-const Http = require('sf-core/net/http');
 const System = require('sf-core/device/system');
+const ServiceCall = require("sf-extension-utils/lib/service-call");
 
-var mcs = require('../mcs');
-
+var amce = require('../amce');
 var loadingView;
 
 const Page1 = extend(Page)(
@@ -17,41 +16,38 @@ const Page1 = extend(Page)(
         var self = this;
         _super(self);
 
-
         loadingView = loadingViewCreator(99999);
-
 
         var btnLogin = new Button({
             text: 'Login',
             flexGrow: 1,
-            onPress: mcsLogin
+            onPress: amceLogin
         });
         var btnRegister = new Button({
             text: 'Register Device For Push Notification',
             flexGrow: 1,
-            onPress: mcsRegister
+            onPress: amceRegister
         });
         var btnDeregister = new Button({
             text: 'Deregister Device For Push Notification',
             flexGrow: 1,
-            onPress: mcsDeregister
+            onPress: amceDeregister
         });
         var btnSendBasicEvent = new Button({
             text: 'Send Analytic - Basic Event',
             flexGrow: 1,
-            onPress: mcsSendBasicAnalytic
+            onPress: amceSendBasicAnalytic
         });
         var btnSendAnalytic = new Button({
             text: 'Send Analytic',
             flexGrow: 1,
-            onPress: mcsSendAnalytic
+            onPress: amceSendAnalytic
         });
         var btnApiCaller = new Button({
             text: 'Api Caller (GET)',
             flexGrow: 1,
-            onPress: mcsCreateRequest
+            onPress: amceCreateRequest
         });
-
         var btnDemoApp = new Button({
             text: 'Demo App',
             backgroundColor: Color.GREEN,
@@ -59,10 +55,7 @@ const Page1 = extend(Page)(
             onPress: demoApp
         });
 
-
-
-        // MCS INIT
-
+        // AMCE INIT
         this.layout.addChild(btnLogin);
         this.layout.addChild(btnRegister);
         this.layout.addChild(btnDeregister);
@@ -71,171 +64,123 @@ const Page1 = extend(Page)(
         this.layout.addChild(btnApiCaller);
         this.layout.addChild(btnDemoApp);
         this.layout.addChild(loadingView);
-
-
     });
 
 // Gets/sets press event callback for btn
-function mcsLogin() {
-
+function amceLogin() {
     loadingView.visible = true;
-
-    mcs.login({
+    amce.login({
             'username': 'YOUR USER NAME',
             'password': 'YOUR PASSWORD'
-        },
-
-        function(err, result) {
-
+        })
+        .then(e => {
             loadingView.visible = false;
-
-            if (err) {
-                return alert("LOGIN FAILED.  " + err);
-            }
-
-            alert('Success ' + result);
-        }
-
-    );
-
+            alert("login succeeded");
+        })
+        .catch(e => {
+            loadingView.visible = false;
+            alert("login failed");
+        });
 }
 
-
-function mcsSendBasicAnalytic() {
+function amceSendBasicAnalytic() {
     loadingView.visible = true;
-
-    var optionsAnalytic = {
-        'deviceId': '112233',
-        'sessionId': '112233',
-        'eventName': 'sendBasicEvent'
-    };
-
-    mcs.sendBasicEvent(optionsAnalytic, function(err, result) {
-
-        loadingView.visible = false;
-
-        if (err) {
-            return alert("sendBasicEvent FAILED.  " + err);
-        }
-
-        alert("sendBasicEvent SUCC.  " + result.toString());
-
-    });
+    amce.sendBasicEvent({
+            'deviceId': '112233',
+            'sessionId': '112233',
+            'eventName': 'sendBasicEvent'
+        })
+        .then(e => {
+            loadingView.visible = false;
+            alert("sendBasicEvent succeeded");
+        })
+        .catch(e => {
+            loadingView.visible = false;
+            alert("sendBasicEvent failed");
+        });
 }
 
-function mcsSendAnalytic() {
+function amceSendAnalytic() {
     loadingView.visible = true;
-
-    var optionsAnalytic = {
-        'deviceId': '112233',
-        'sessionId': '112233',
-        'body': [{
-            "name": "testMCSEvent",
-            "type": "custom",
-            "timestamp": new Date().toISOString()
-        }]
-    };
-
-    mcs.sendAnalytic(optionsAnalytic, function(err, result) {
-
-        loadingView.visible = false;
-
-        if (err) {
-            return alert("sendAnalytic FAILED.  " + err);
-        }
-
-        alert("sendAnalytic SUCC.  " + result.toString());
-
-    });
+    amce.sendBasicEvent({
+            'deviceId': '112233',
+            'sessionId': '112233',
+            'body': [{
+                "name": "testEvent",
+                "type": "custom",
+                "timestamp": new Date().toISOString()
+            }]
+        })
+        .then(e => {
+            loadingView.visible = false;
+            alert("sendAnalytic succeeded");
+        })
+        .catch(e => {
+            loadingView.visible = false;
+            alert("sendAnalytic failed");
+        });
 }
 
-function mcsRegister() {
+function amceRegister() {
     loadingView.visible = true;
-
-    var optionsRegisterDevice = {
-        'packageName': 'io.smartface.mcstest',
-        'version': '1.0.0',
-    };
-
-
-    mcs.registerDeviceToken(optionsRegisterDevice, function(err, result) {
-
-        loadingView.visible = false;
-
-        if (err) {
-            return alert("registerDeviceToken FAILED.  " + err);
-        }
-
-        alert("registerDeviceToken SUCC.  " + result.toString());
-
-
-    });
+    amce.registerDeviceToken({
+            'packageName': 'io.smartface.amcetest',
+            'version': '1.0.0',
+        })
+        .then(e => {
+            loadingView.visible = false;
+            alert("registerDeviceToken succeeded");
+        })
+        .catch(e => {
+            loadingView.visible = false;
+            alert("registerDeviceToken failed");
+        });
 }
 
-function mcsDeregister() {
-
+function amceDeregister() {
     loadingView.visible = true;
-
-    var optionsRegisterDevice = {
-        'packageName': 'io.smartface.mcstest',
-        'version': '1.0.0',
-    };
-
-    mcs.deregisterDeviceToken(optionsRegisterDevice, function(err, result) {
-
-
-        loadingView.visible = false;
-
-        if (err) {
-            return alert("deregisterDeviceToken FAILED.  " + err);
-        }
-
-        alert("deregisterDeviceToken SUCC.  " + result.toString());
-
-    });
+    amce.deregisterDeviceToken({
+            'packageName': 'io.smartface.amcetest',
+            'version': '1.0.0',
+        })
+        .then(e => {
+            loadingView.visible = false;
+            alert("deregisterDeviceToken succeeded");
+        })
+        .catch(e => {
+            loadingView.visible = false;
+            alert("deregisterDeviceToken failed");
+        });
 }
 
-function mcsCreateRequest() {
+function amceCreateRequest() {
     loadingView.visible = true;
-
-    var options = {
+    var requestOptions = amce.createRequestOptions({
         'apiName': 'weather',
         'endpointName': 'getCity',
-    };
-    var requestOptions = mcs.createRequestOptions(options);
-    var query = 'q=sanfrancisco&appid=caf032ca9a5364cb41ca768e3553d9b3';
-
-    var url = requestOptions.url + query;
-    var headers = requestOptions.headers;
-    var body = '';
-
-    Http.request({
-            'url': url,
-            'headers': headers,
-            'method': 'GET',
-            'body': body,
-            'onLoad': function(e) {
-
-                loadingView.visible = false;
-
-                alert("mcsCreateRequest SUCC.  " + e.body.toString());
-            },
-            'onError': function(e) {
-                if (e.statusCode == 403)
-                    return alert("You need to login first");
-                alert("mcsCreateRequest FAILED.  " + (e.body && e.body.toString()));
-            }
-
-        }
-    );
-
+    });
+    var sc = new ServiceCall({
+        baseUrl: requestOptions.url,
+        logEnabled: false
+    });
+    sc.request(`q=sanfrancisco&appid=caf032ca9a5364cb41ca768e3553d9b3`, {
+            method: "GET",
+            body: {},
+            headers: requestOptions.headers
+        })
+        .then(e => {
+            loadingView.visible = false;
+            alert("createRequestOptions succeeded");
+        })
+        .catch(e => {
+            loadingView.visible = false;
+            alert("createRequestOptions failed");
+        });
 }
 
 
 function demoApp() {
-
     Router.go('page2');
-
 }
 
 var loadingViewCreator = function(id) {
@@ -264,5 +209,4 @@ var loadingViewCreator = function(id) {
     return loadingLayout;
 };
 
-
-module && (module.exports = Page1);
+module.exports = Page1;

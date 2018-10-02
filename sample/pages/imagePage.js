@@ -52,11 +52,11 @@ const imagePage = extend(Page)(
             if (params) {
                 var collectionId = params.collectionId;
                 var imageId = params.imageId;
-                var MCS = params.MCS;
+                var AMCE = params.AMCE;
                 
                 loadingView.visible = true;
                 
-                MCS.getItem({
+                AMCE.getItem({
                         'collectionId': collectionId,
                         'itemId': imageId
                     },

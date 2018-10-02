@@ -13,8 +13,7 @@ const FlexLayout = require('sf-core/ui/flexlayout');
 const ActivityIndicator = require('sf-core/ui/activityindicator');
 const System = require('sf-core/device/system');
 
-
-var mcs = require('../mcs');
+var amce = require('../amce');
 var myListView;
 var fileArray;
 var self;
@@ -27,10 +26,7 @@ const Page3 = extend(Page)(
         self = this;
         _super(this);
 
-
-
         loadingView = loadingViewCreator(99999);
-
 
         myListView = new ListView({
             flexGrow: 1,
@@ -46,110 +42,56 @@ const Page3 = extend(Page)(
             text: 'Add File',
             height: 50,
             textAlignment: TextAlignment.MIDCENTER,
-
         });
-
 
         myListView.onRowCreate = function() {
             var myListViewItem = new ListViewItem({
                 padding: 10
             });
-
             var myLabel = new Label({
-                id: 102,
+                id: 102
             });
-
             myListViewItem.addChild(myLabel);
-
             return myListViewItem;
         };
 
         myListView.onRowBind = function(listViewItem, index) {
-
             var myLabel = listViewItem.findChildById(102);
             myLabel.text = fileArray[index].name;
-
-
-
         };
 
         myListView.onRowSelected = function(listViewItem, index) {
-
             Router.go('imagePage', {
                 'collectionId': CollectionID,
                 'imageId': fileArray[index].id,
-                'MCS': mcs
+                'AMCE': amce
             });
-
         };
 
         this.layout.addChild(myListView);
         this.layout.addChild(addFile);
         this.layout.addChild(loadingView);
-
-
-        this.onShow = function(params) {
-                getItems();
-        };
-
-
-
+        this.onShow = getItems;
     }
 );
 
-
 function getItems() {
-
     loadingView.visible = true;
-
-    mcs.getCollectionList(
-
-        function(err, result) { 
-
+    amce.getCollectionList()
+        .then(e => amce.getItemListInCollection(CollectionID = e[0].id))
+        .then(e => {
             loadingView.visible = false;
-
-            if (err) {
-                return alert("getCollectionList FAILED.  " + err);
-            }
-
-            CollectionID = result[0].id;
-
-
-            loadingView.visible = true;
-            //----------------------------------------------
-            mcs.getItemListInCollection(CollectionID,
-
-                function(err, result) { 
-
-
-                    loadingView.visible = false;
-
-                    if (err) {
-                        return alert("getItemListInCollection FAILED.  " + err);
-                    }
-
-                    fileArray = result;
-
-                    myListView.itemCount = result.length;
-                    myListView.refreshData();
-
-                }
-
-            );
-
-
-        }
-    );
-
-
+            fileArray = e;
+            myListView.itemCount = e.length;
+            myListView.refreshData();
+        })
+        .catch(e => {
+            loadingView.visible = false;
+            alert("getItems failed");
+        });
 }
 
-
-
-
-
 function addfile_onPress() {
-
     Multimedia.pickFromGallery({
         type: Multimedia.Type.IMAGE,
         onSuccess: onSuccess,
@@ -157,42 +99,31 @@ function addfile_onPress() {
     });
 
     function onSuccess(picked) {
-
         console.log(JSON.stringify(picked));
 
         var pickedImage = picked.image;
-
         var imageBlob = pickedImage.compress(Image.Format.JPEG, 100);
-
-
         var base64TestImageData = imageBlob.toBase64();
-
 
         loadingView.visible = true;
 
         var random_number = getRandomArbitrary(1000000000, 9999999999);
+        var itemName = 'testFile_' + random_number + '.png';
 
-        mcs.storeItem({
+        amce.storeItem({
                 'collectionId': CollectionID,
-                'itemName': 'testFile_' + random_number + '.png',
+                'itemName': itemName,
                 'base64EncodeData': base64TestImageData,
                 'contentType': 'image/png'
-            },
-            function(err, result) {
-
+            })
+            .then(e => {
                 loadingView.visible = false;
-
-                if (err) {
-                    return alert("storeItem FAILED.  " + err);
-                }
-
-                alert("File Upload Success : " + 'testFile_' + random_number + '.png');
-
-                getItems();
-
-            }
-        );
-
+                alert("File Upload Success : " + itemName);
+            })
+            .catch(e => {
+                loadingView.visible = false;
+                alert("storeItem failed");
+            });
     }
 }
 
@@ -226,5 +157,4 @@ function getRandomArbitrary(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-
-module && (module.exports = Page3);
+module.exports = Page3;

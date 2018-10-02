@@ -9,7 +9,7 @@ const FlexLayout = require('sf-core/ui/flexlayout');
 const ActivityIndicator = require('sf-core/ui/activityindicator');
 const System = require('sf-core/device/system');
 
-var mcs = require('../mcs');
+var amce = require('../amce');
 
 var usernameTextBox;
 var passwordTextBox;
@@ -19,9 +19,7 @@ const Page2 = extend(Page)(
     function(_super) {
         _super(this);
 
-
         loadingView = loadingViewCreator(99999);
-
 
         usernameTextBox = new TextBox({
             hint: 'Username',
@@ -46,7 +44,6 @@ const Page2 = extend(Page)(
             height: 50
         });
 
-
         var loginButton = new Button({
             onPress: loginButton_onPress,
             text: 'Login',
@@ -55,49 +52,33 @@ const Page2 = extend(Page)(
             marginRight: 10,
             marginTop: 20,
             textAlignment: TextAlignment.MIDCENTER,
-
         });
-
 
         this.layout.addChild(usernameTextBox);
         this.layout.addChild(passwordTextBox);
         this.layout.addChild(loginButton);
         this.layout.addChild(loadingView);
 
-        this.onLoad = function() {
-
-            //this.layout.backgroundColor =  Color.TRA;
-
-        };
-
+        this.onLoad = function() {};
     }
 );
 
 function loginButton_onPress() {
-
-
     loadingView.visible = true;
 
-    mcs.login({
+    loadingView.visible = true;
+    amce.login({
             'username': usernameTextBox.text,
             'password': passwordTextBox.text
-        },
-
-        function(err, result) {
-
+        })
+        .then(e => {
             loadingView.visible = false;
-
-            if (err) {
-                return alert("LOGIN FAILED.  " + err);
-            }
-
-
             Router.go('page3');
-        }
-
-    );
-
-
+        })
+        .catch(e => {
+            loadingView.visible = false;
+            alert("Login failed");
+        });
 }
 
 var loadingViewCreator = function(id) {
@@ -126,4 +107,4 @@ var loadingViewCreator = function(id) {
     return loadingLayout;
 };
 
-module && (module.exports = Page2);
+module.exports = Page2;

@@ -1,18 +1,19 @@
 {
-  "name": "sf-extension-mcs",
-  "version": "4.1.2",
-  "description": "Oracle MSC Plugin for Smartface Native Framework",
-  "main": "mcs.js",
+  "name": "sf-extension-amce",
+  "version": "1.0.0",
+  "description": "Oracle AMCE Plugin for Smartface Native Framework",
+  "main": "amce.js",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:smartface/sf-extension-mcs.git"
+    "url": "git+ssh://git@github.com:smartface/sf-extension-amce.git"
   },
   "keywords": [
     "smartface",
     "plugin",
     "oracle",
     "javascript",
-    "mcs"
+    "mcs",
+    "amce"
   ],
   "author": {
     "name": "Smartface",
@@ -20,7 +21,7 @@
     "url": "http://smartface.io"
   },
   "license": "ISC",
-  "homepage": "https://github.com/smartface/sf-extension-mcs#readme",
+  "homepage": "https://github.com/smartface/sf-extension-amce#readme",
   "devDependencies": {
     "jsdoc-to-markdown": "^4.0.1"
   },
