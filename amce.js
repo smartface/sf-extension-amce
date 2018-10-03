@@ -19,10 +19,13 @@ require("sf-extension-utils/lib/base/timers"); //corrects setTimeout & setInterv
  * @class
  * @param {object} options - init object
  * @param {string} options.baseUrl - AMCE Base URL
- * @param {string} options.backendId - AMCE BackendId
+ * @param {string} options.backendId - AMCE Backend Id
  * @param {string} options.androidApplicationKey - AMCE Android Client Key
  * @param {string} options.iOSApplicationKey - AMCE iOS Client Key
  * @param {string} options.anonymousKey - AMCE Basic Anonymous Key
+ * @param {string} options.oAuthTokenEndpoint - AMCE OAuth Token Endpoint (optional, needed if OAuth to be used)
+ * @param {string} options.clientId - AMCE Client Id (optional, needed if OAuth to be used)
+ * @param {string} options.clientSecret - AMCE Client Secret (optional, needed if OAuth to be used)
  */
 class AMCE {
     constructor(options) {
@@ -42,6 +45,9 @@ class AMCE {
             authorization: options.anonymousKey ? "Basic " + options.anonymousKey : "",
             androidApplicationKey: options.androidApplicationKey,
             iOSApplicationKey: options.iOSApplicationKey,
+            oAuthTokenEndpoint: options.oAuthTokenEndpoint,
+            clientId: options.clientId,
+            clientSecret: options.clientSecret,
             autoFlushEventsTimerId: null,
             eventStore: [],
             sc
@@ -61,10 +67,12 @@ class AMCE {
 
     /**
      * login to AMCE
+     * @see {@link https://docs.oracle.com/en/cloud/paas/mobile-autonomous-cloud/develop/authentication-omce.html#GUID-5A87EE93-E46F-4172-B622-0CF8FFC011AC Oracle Docs}
      * @method
      * @param {object} options - login options
-     * @param {string} options.username - AMCE Username
-     * @param {string} options.password - AMCE Password
+     * @param {string} options.username - AMCE Username (optional, needed if basic authentication to be used)
+     * @param {string} options.password - AMCE Password (optional, needed if basic authentication to be used)
+     * @param {boolean} options.useOAuth [options.useOAuth=false]
      * @return {Promise<object>}
      * @example // Result:
      * {
@@ -81,22 +89,44 @@ class AMCE {
      */
     login(options) {
         const p = privates.get(this);
-        const { username, password } = options;
+        const { username, password, useOAuth } = options;
         const token = 'Basic ' + Base64.encode(username + ':' + password);
 
         return new Promise((resolve, reject) => {
-            p.sc.request(`/mobile/platform/users/${username}`, {
-                    method: "GET",
+            if (useOAuth) {
+                // Need to create a new ServiceCall instance because base url is different
+                (new ServiceCall({
+                    baseUrl: p.oAuthTokenEndpoint,
+                    logEnabled: false,
                     headers: {
-                        'Content-Type': 'application/json; charset=utf-8',
-                        'Authorization': token
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+                        'Authorization': `Basic ${Base64.encode(p.clientId + ':' + p.clientSecret)}`,
                     }
-                })
-                .then(response => {
-                    p.authorization = token;
-                    response.id === null ? reject(response) : resolve(response);
-                })
-                .catch(reject);
+                }))
+                .request("", {
+                        method: "POST",
+                        body: `grant_type=client_credentials&scope=${p.baseUrl}urn:opc:resource:consumer::all`,
+                    })
+                    .then(response => {
+                        p.authorization = `Bearer ${response.access_token}`;
+                        !!response.access_token ? resolve(response) : reject(response);
+                    })
+                    .catch(reject);
+            }
+            else {
+                p.sc.request(`/mobile/platform/users/${username}`, {
+                        method: "GET",
+                        headers: {
+                            'Content-Type': 'application/json; charset=utf-8',
+                            'Authorization': token
+                        }
+                    })
+                    .then(response => {
+                        p.authorization = token;
+                        response.id === null ? reject(response) : resolve(response);
+                    })
+                    .catch(reject);
+            }
         });
     }
 

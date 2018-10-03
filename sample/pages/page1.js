@@ -85,11 +85,7 @@ function amceLogin() {
 
 function amceSendBasicAnalytic() {
     loadingView.visible = true;
-    amce.sendBasicEvent({
-            'deviceId': '112233',
-            'sessionId': '112233',
-            'eventName': 'sendBasicEvent'
-        })
+    amce.sendBasicEvent("sampleEvent")
         .then(e => {
             loadingView.visible = false;
             alert("sendBasicEvent succeeded");
@@ -102,7 +98,7 @@ function amceSendBasicAnalytic() {
 
 function amceSendAnalytic() {
     loadingView.visible = true;
-    amce.sendBasicEvent({
+    amce.sendAnalytic({
             'deviceId': '112233',
             'sessionId': '112233',
             'body': [{

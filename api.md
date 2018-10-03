@@ -61,10 +61,13 @@ Creates new instace of AMCE
 | --- | --- | --- |
 | options | <code>object</code> | init object |
 | options.baseUrl | <code>string</code> | AMCE Base URL |
-| options.backendId | <code>string</code> | AMCE BackendId |
+| options.backendId | <code>string</code> | AMCE Backend Id |
 | options.androidApplicationKey | <code>string</code> | AMCE Android Client Key |
 | options.iOSApplicationKey | <code>string</code> | AMCE iOS Client Key |
 | options.anonymousKey | <code>string</code> | AMCE Basic Anonymous Key |
+| options.oAuthTokenEndpoint | <code>string</code> | AMCE OAuth Token Endpoint (optional, needed if OAuth to be used) |
+| options.clientId | <code>string</code> | AMCE Client Id (optional, needed if OAuth to be used) |
+| options.clientSecret | <code>string</code> | AMCE Client Secret (optional, needed if OAuth to be used) |
 
 <a name="AMCE+autoFlushEventsStarted"></a>
 
@@ -95,12 +98,14 @@ Sets API authorization header value. Compared to login, this does not check
 login to AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
+**See**: [Oracle Docs](https://docs.oracle.com/en/cloud/paas/mobile-autonomous-cloud/develop/authentication-omce.html#GUID-5A87EE93-E46F-4172-B622-0CF8FFC011AC)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | options | <code>object</code> | login options |
-| options.username | <code>string</code> | AMCE Username |
-| options.password | <code>string</code> | AMCE Password |
+| options.username | <code>string</code> | AMCE Username (optional, needed if basic authentication to be used) |
+| options.password | <code>string</code> | AMCE Password (optional, needed if basic authentication to be used) |
+| options.useOAuth | <code>boolean</code> | [options.useOAuth=false] |
 
 **Example**  
 ```js

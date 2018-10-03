@@ -21,7 +21,10 @@ var options = {
 	'baseUrl': 'YOUR BASE URL', // Required
 	'androidApplicationKey': 'YOUR ANDROID APP KEY', // Required only for analytics & events
 	'iOSApplicationKey': 'YOUR IOS APP KEY', // Required only for analytics & events
-	'anonymousKey': 'YOUR BASIC AUTHENTICATION ANONYMOUS KEY' // Required only to perform operations without logging in first
+	'anonymousKey': 'YOUR BASIC AUTHENTICATION ANONYMOUS KEY', // Required only to perform operations without logging in first
+	'oAuthTokenEndpoint': 'YOUR OAUTH TOKEN ENDPOINT', // Required only if OAuth to be used
+	'clientId': 'YOUR CLIENT ID', // Required only if OAuth to be used
+	'clientSecret': 'YOUR CLIENT SECRET' // Required only if OAuth to be used
 };
 var amce = new AMCE(options);
 ```
