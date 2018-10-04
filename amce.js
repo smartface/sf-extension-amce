@@ -6,13 +6,14 @@ const privates = new WeakMap();
 const Data = require('sf-core/data');
 const ServiceCall = require("sf-extension-utils/lib/service-call");
 const AMCE_VERSION = "1.0";
+const LOG_ENABLED = true;
 const amceDeviceId = Data.getStringVariable("amce-deviceId") || (function() {
     var id = uuid();
     Data.setStringVariable("amce-deviceId", id);
     return id;
 })();
 
-require("sf-extension-utils/lib/base/timers"); //corrects setTimeout & setInterval
+require("sf-extension-utils/lib/base/timers"); // Corrects setTimeout & setInterval
 
 /**
  * Creates new instace of AMCE
@@ -31,7 +32,7 @@ class AMCE {
     constructor(options) {
         var sc = new ServiceCall({
             baseUrl: options.baseUrl,
-            logEnabled: false,
+            logEnabled: LOG_ENABLED,
             headers: {
                 'Oracle-Mobile-API-Version': AMCE_VERSION,
                 'Oracle-Mobile-Backend-ID': options.backendId,
@@ -92,41 +93,22 @@ class AMCE {
         const { username, password, useOAuth } = options;
         const token = 'Basic ' + Base64.encode(username + ':' + password);
 
+        if (useOAuth)
+            return this.loginWithOAuth();
+
         return new Promise((resolve, reject) => {
-            if (useOAuth) {
-                // Need to create a new ServiceCall instance because base url is different
-                (new ServiceCall({
-                    baseUrl: p.oAuthTokenEndpoint,
-                    logEnabled: false,
+            p.sc.request(`/mobile/platform/users/${username}`, {
+                    method: "GET",
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-                        'Authorization': `Basic ${Base64.encode(p.clientId + ':' + p.clientSecret)}`,
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Authorization': token
                     }
-                }))
-                .request("", {
-                        method: "POST",
-                        body: `grant_type=client_credentials&scope=${p.baseUrl}urn:opc:resource:consumer::all`,
-                    })
-                    .then(response => {
-                        p.authorization = `Bearer ${response.access_token}`;
-                        !!response.access_token ? resolve(response) : reject(response);
-                    })
-                    .catch(reject);
-            }
-            else {
-                p.sc.request(`/mobile/platform/users/${username}`, {
-                        method: "GET",
-                        headers: {
-                            'Content-Type': 'application/json; charset=utf-8',
-                            'Authorization': token
-                        }
-                    })
-                    .then(response => {
-                        p.authorization = token;
-                        response.id === null ? reject(response) : resolve(response);
-                    })
-                    .catch(reject);
-            }
+                })
+                .then(response => {
+                    p.authorization = token;
+                    response.id === null ? reject(response) : resolve(response);
+                })
+                .catch(reject);
         });
     }
 
@@ -170,21 +152,25 @@ class AMCE {
             Notications.registerForPushNotifications(e => {
                 p.deviceToken = e.token;
                 amce.notificationToken = e.token;
-                p.sc.request(`/mobile/platform/devices/register`, {
-                        method: "POST",
-                        body: {
-                            notificationToken: p.deviceToken,
-                            notificationProvider: isIOS ? 'APNS' : 'GCM',
-                            mobileClient: {
-                                id: packageName,
-                                version: version,
-                                platform: isIOS ? 'IOS' : 'ANDROID'
+
+                this.loginWithOAuth()
+                    .then(_ => {
+                        return p.sc.request(`/mobile/platform/devices/register`, {
+                            method: "POST",
+                            body: {
+                                notificationToken: p.deviceToken,
+                                notificationProvider: isIOS ? 'APNS' : 'GCM',
+                                mobileClient: {
+                                    id: packageName,
+                                    version: version,
+                                    platform: isIOS ? 'IOS' : 'ANDROID'
+                                }
+                            },
+                            headers: {
+                                'Content-Type': 'application/json; charset=utf-8',
+                                'Authorization': p.authorization
                             }
-                        },
-                        headers: {
-                            'Content-Type': 'application/json; charset=utf-8',
-                            'Authorization': p.authorization
-                        }
+                        });
                     })
                     .then(response => {
                         response.id === null ? reject(response) : resolve(response);
@@ -207,21 +193,25 @@ class AMCE {
         const isIOS = System.OS === 'iOS';
 
         Notications.unregisterForPushNotifications();
-        return p.sc.request(`/mobile/platform/devices/deregister`, {
-            method: "POST",
-            body: {
-                notificationToken: p.deviceToken,
-                notificationProvider: isIOS ? 'APNS' : 'GCM',
-                mobileClient: {
-                    id: packageName,
-                    platform: isIOS ? 'IOS' : 'ANDROID'
-                }
-            },
-            headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Authorization': p.authorization
-            }
-        });
+
+        this.loginWithOAuth()
+            .then(_ => {
+                return p.sc.request(`/mobile/platform/devices/deregister`, {
+                    method: "POST",
+                    body: {
+                        notificationToken: p.deviceToken,
+                        notificationProvider: isIOS ? 'APNS' : 'GCM',
+                        mobileClient: {
+                            id: packageName,
+                            platform: isIOS ? 'IOS' : 'ANDROID'
+                        }
+                    },
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Authorization': p.authorization
+                    }
+                });
+            });
     }
 
     /**
@@ -241,16 +231,19 @@ class AMCE {
         const applicationKey = isIOS ? p.iOSApplicationKey : p.androidApplicationKey;
 
         return new Promise((resolve, reject) => {
-            p.sc.request(`/mobile/platform/analytics/events`, {
-                    method: "POST",
-                    body,
-                    headers: {
-                        'Authorization': p.authorization,
-                        'Content-Type': 'application/json; charset=utf-8',
-                        'Oracle-Mobile-Application-Key': applicationKey,
-                        'Oracle-Mobile-Analytics-Session-ID': sessionId,
-                        'Oracle-Mobile-Device-ID': deviceId,
-                    }
+            this.loginWithOAuth()
+                .then(_ => {
+                    return p.sc.request(`/mobile/platform/analytics/events`, {
+                        method: "POST",
+                        body,
+                        headers: {
+                            'Authorization': p.authorization,
+                            'Content-Type': 'application/json; charset=utf-8',
+                            'Oracle-Mobile-Application-Key': applicationKey,
+                            'Oracle-Mobile-Analytics-Session-ID': sessionId,
+                            'Oracle-Mobile-Device-ID': deviceId,
+                        }
+                    });
                 })
                 .then(response => {
                     response.message === null ? reject(response) : resolve(response);
@@ -358,12 +351,15 @@ class AMCE {
     getCollectionList() {
         const p = privates.get(this);
         return new Promise((resolve, reject) => {
-            p.sc.request(`/mobile/platform/storage/collections`, {
-                    method: "GET",
-                    headers: {
-                        'Content-Type': 'application/json; charset=utf-8',
-                        'Authorization': p.authorization
-                    }
+            this.loginWithOAuth()
+                .then(_ => {
+                    return p.sc.request(`/mobile/platform/storage/collections`, {
+                        method: "GET",
+                        headers: {
+                            'Content-Type': 'application/json; charset=utf-8',
+                            'Authorization': p.authorization
+                        }
+                    });
                 })
                 .then(response => {
                     if (response.items == null) {
@@ -401,12 +397,15 @@ class AMCE {
         const p = privates.get(this);
         const collectionId = options ? options.collectionId : options;
         return new Promise((resolve, reject) => {
-            p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects`, {
-                    method: "GET",
-                    headers: {
-                        'Content-Type': 'application/json; charset=utf-8',
-                        'Authorization': p.authorization
-                    }
+            this.loginWithOAuth()
+                .then(_ => {
+                    return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects`, {
+                        method: "GET",
+                        headers: {
+                            'Content-Type': 'application/json; charset=utf-8',
+                            'Authorization': p.authorization
+                        }
+                    });
                 })
                 .then(response => {
                     response.items === null ? reject(response) : resolve(response.items);
@@ -437,13 +436,16 @@ class AMCE {
     getItem(options) {
         const p = privates.get(this);
         const { collectionId, itemId } = options;
-        return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects/${itemId}`, {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Authorization': p.authorization
-            }
-        });
+        return this.loginWithOAuth()
+            .then(_ => {
+                return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects/${itemId}`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Authorization': p.authorization
+                    }
+                });
+            });
     }
 
     /**
@@ -482,15 +484,18 @@ class AMCE {
     storeItem(options) {
         const p = privates.get(this);
         const { collectionId, itemName, base64EncodeData, contentType } = options;
-        return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects`, {
-            method: "POST",
-            body: base64EncodeData,
-            headers: {
-                'Authorization': p.authorization,
-                'Oracle-Mobile-Name': itemName,
-                'Content-Type': contentType
-            }
-        });
+        return this.loginWithOAuth()
+            .then(_ => {
+                return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects`, {
+                    method: "POST",
+                    body: base64EncodeData,
+                    headers: {
+                        'Authorization': p.authorization,
+                        'Oracle-Mobile-Name': itemName,
+                        'Content-Type': contentType
+                    }
+                });
+            });
     }
 
     /**
@@ -505,12 +510,15 @@ class AMCE {
         const p = privates.get(this);
         const { collectionId, itemId } = options;
         const random = Math.floor(Math.random() * 100000); // Added due to the SUPDEV-470 workaround
-        return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects/${itemId}?v=${random}`, {
-            method: "DELETE",
-            headers: {
-                'Authorization': p.authorization
-            }
-        });
+        return this.loginWithOAuth()
+            .then(_ => {
+                return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects/${itemId}?v=${random}`, {
+                    method: "DELETE",
+                    headers: {
+                        'Authorization': p.authorization
+                    }
+                });
+            });
     }
 
     /**
@@ -520,9 +528,9 @@ class AMCE {
      * @param {string} options.apiName - AMCE Api Name
      * @param {string} options.endpointPath - AMCE Endpoint path
      * @param {string} [options.version = "1.0"] - API version, by default 1.0
-     * @return {object} httpRequestOption to be used in Smartface request
+     * @return {Promise<RequestOptions>}
      */
-    createRequestOptions(options) {
+    createRequestOptions(options = {}) {
         const p = privates.get(this);
         const { version = "1.0", apiName, endpointPath } = options;
         const url = `${p.baseUrl}/mobile/custom/${apiName}/${endpointPath}`;
@@ -531,8 +539,18 @@ class AMCE {
             'Authorization': p.authorization,
             'Oracle-Mobile-API-Version': version
         };
-        return { url, headers };
+        return new Promise((resolve, reject) => {
+            this.loginWithOAuth()
+                .then(resolve({ url, headers }))
+                .catch(reject);
+        });
     }
+
+    /**
+     * @typedef {object} RequestOptions
+     * @property {string} url
+     * @property {object} headers
+     */
 
     /**
      * Get application policies from AMCE
@@ -541,13 +559,16 @@ class AMCE {
      */
     getAppPolicies() {
         const p = privates.get(this);
-        return p.sc.request(`/mobile/platform/appconfig/client`, {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': p.authorization
-            }
-        });
+        return this.loginWithOAuth()
+            .then(_ => {
+                return p.sc.request(`/mobile/platform/appconfig/client`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': p.authorization
+                    }
+                });
+            });
     }
 
     /**
@@ -672,13 +693,44 @@ class AMCE {
             '?' + key + '=' + value :
             '/' + value;
 
-        return p.sc.request(url, {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': p.authorization,
-                key: value
-            }
+        return this.loginWithOAuth()
+            .then(_ => {
+                return p.sc.request(url, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': p.authorization,
+                        key: value
+                    }
+                });
+            });
+    }
+
+    loginWithOAuth() {
+        const p = privates.get(this);
+        return new Promise((resolve, reject) => {
+            if (p.authorization)
+                return resolve();
+
+            // Need to create a new ServiceCall instance because base url is different
+            (new ServiceCall({
+                baseUrl: p.oAuthTokenEndpoint,
+                logEnabled: LOG_ENABLED,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+                    'Authorization': `Basic ${Base64.encode(p.clientId + ':' + p.clientSecret)}`,
+                }
+            }))
+            .request("", {
+                    method: "POST",
+                    body: `grant_type=client_credentials&scope=${p.baseUrl}urn:opc:resource:consumer::all`,
+                })
+                .then(response => {
+                    let tokenRetrieved = !!response.access_token;
+                    tokenRetrieved ? resolve(response) : reject(response);
+                    tokenRetrieved && (p.authorization = `Bearer ${response.access_token}`);
+                })
+                .catch(reject);
         });
     }
 }
