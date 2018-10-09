@@ -5,7 +5,7 @@
   "main": "amce.js",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:smartface/sf-extension-amce.git"
+    "url": "git+ssh://git@github.com/smartface/sf-extension-amce.git"
   },
   "keywords": [
     "smartface",
@@ -15,21 +15,23 @@
     "mcs",
     "amce"
   ],
-  "author": {
-    "name": "Smartface",
-    "email": "info@smartface.io",
-    "url": "http://smartface.io"
-  },
-  "license": "ISC",
+  "author": "Smartface <info@smartface.io> (http://smartface.io)",
+  "license": "MIT",
   "homepage": "https://github.com/smartface/sf-extension-amce#readme",
   "devDependencies": {
     "jsdoc-to-markdown": "^4.0.1"
   },
-  "readmeFilename": "README.md",
   "peerDependencies": {
     "sf-extension-utils": "^4.3.0"
   },
   "scripts": {
     "docs": "bash ./createdoc.sh"
+  },
+  "maintainers": [
+    "Alper Ozisik <alper.ozisik@smartface.io>",
+    "Ozcan Ovunc <ozcan.ovunc@smartface.io>"
+  ],
+  "bugs": {
+    "url": "https://github.com/smartface/sf-extension-amce/issues"
   }
 }
