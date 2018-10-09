@@ -15,6 +15,8 @@
 <dd></dd>
 <dt><a href="#CollectionItem">CollectionItem</a> : <code>object</code></dt>
 <dd></dd>
+<dt><a href="#RequestOptions">RequestOptions</a> : <code>object</code></dt>
+<dd></dd>
 </dl>
 
 <a name="AMCE"></a>
@@ -43,7 +45,7 @@ Creates new instace of AMCE
     * [.getItem(options)](#AMCE+getItem) ⇒ <code>Promise.&lt;object&gt;</code>
     * [.storeItem(options)](#AMCE+storeItem) ⇒ <code>Promise.&lt;object&gt;</code>
     * [.deleteItem(options)](#AMCE+deleteItem) ⇒ <code>Promise.&lt;object&gt;</code>
-    * [.createRequestOptions(options)](#AMCE+createRequestOptions) ⇒ <code>object</code>
+    * [.createRequestOptions(options)](#AMCE+createRequestOptions) ⇒ [<code>Promise.&lt;RequestOptions&gt;</code>](#RequestOptions)
     * [.getAppPolicies()](#AMCE+getAppPolicies) ⇒ <code>Promise.&lt;object&gt;</code>
     * [.getDeviceLocationsByName(options)](#AMCE+getDeviceLocationsByName) ⇒ <code>Promise.&lt;object&gt;</code>
     * [.getDeviceLocationsById(options)](#AMCE+getDeviceLocationsById) ⇒ <code>Promise.&lt;object&gt;</code>
@@ -71,7 +73,7 @@ Creates new instace of AMCE
 
 <a name="AMCE+autoFlushEventsStarted"></a>
 
-### amcE.autoFlushEventsStarted
+### amce.autoFlushEventsStarted
 **Kind**: instance property of [<code>AMCE</code>](#AMCE)  
 **Properties**
 
@@ -81,7 +83,7 @@ Creates new instace of AMCE
 
 <a name="AMCE+setAuthorization"></a>
 
-### amcE.setAuthorization(options)
+### amce.setAuthorization(options)
 Sets API authorization header value. Compared to login, this does not check
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -94,7 +96,7 @@ Sets API authorization header value. Compared to login, this does not check
 
 <a name="AMCE+login"></a>
 
-### amcE.login(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.login(options) ⇒ <code>Promise.&lt;object&gt;</code>
 login to AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -124,13 +126,13 @@ login to AMCE
 ```
 <a name="AMCE+logout"></a>
 
-### amcE.logout()
+### amce.logout()
 Logs out authenticated user, using Anonymous Key if provided
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
 <a name="AMCE+registerDeviceToken"></a>
 
-### amcE.registerDeviceToken(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.registerDeviceToken(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Register device push notification token to AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -159,7 +161,7 @@ Register device push notification token to AMCE
 ```
 <a name="AMCE+deregisterDeviceToken"></a>
 
-### amcE.deregisterDeviceToken(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.deregisterDeviceToken(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Deregister device push notification token from AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -171,7 +173,7 @@ Deregister device push notification token from AMCE
 
 <a name="AMCE+sendAnalytic"></a>
 
-### amcE.sendAnalytic(options) ⇒ [<code>Promise.&lt;AnalyticResult&gt;</code>](#AnalyticResult)
+### amce.sendAnalytic(options) ⇒ [<code>Promise.&lt;AnalyticResult&gt;</code>](#AnalyticResult)
 Send Analytic Event to AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -186,7 +188,7 @@ Send Analytic Event to AMCE
 
 <a name="AMCE+sendBasicEvent"></a>
 
-### amcE.sendBasicEvent(eventName) ⇒ [<code>Promise.&lt;AnalyticResult&gt;</code>](#AnalyticResult)
+### amce.sendBasicEvent(eventName) ⇒ [<code>Promise.&lt;AnalyticResult&gt;</code>](#AnalyticResult)
 Send Analytic Event to AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -197,7 +199,7 @@ Send Analytic Event to AMCE
 
 <a name="AMCE+storeBasicEvent"></a>
 
-### amcE.storeBasicEvent(eventName)
+### amce.storeBasicEvent(eventName)
 Stores basic events to be sent later, similar to sendBasicEvent
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -208,13 +210,13 @@ Stores basic events to be sent later, similar to sendBasicEvent
 
 <a name="AMCE+flushEvents"></a>
 
-### amcE.flushEvents()
+### amce.flushEvents()
 Sends stored events
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
 <a name="AMCE+startAutoFlushEvents"></a>
 
-### amcE.startAutoFlushEvents([period])
+### amce.startAutoFlushEvents([period])
 Starts calling flushEvents periodically
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -225,19 +227,19 @@ Starts calling flushEvents periodically
 
 <a name="AMCE+stopAutoFlushEvents"></a>
 
-### amcE.stopAutoFlushEvents()
+### amce.stopAutoFlushEvents()
 Stops calling flushEvents periodically
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
 <a name="AMCE+getCollectionList"></a>
 
-### amcE.getCollectionList() ⇒ <code>Promise.&lt;Array.&lt;Collection&gt;&gt;</code>
+### amce.getCollectionList() ⇒ <code>Promise.&lt;Array.&lt;Collection&gt;&gt;</code>
 Get list of collections from AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
 <a name="AMCE+getItemListInCollection"></a>
 
-### amcE.getItemListInCollection(options) ⇒ <code>Promise.&lt;Array.&lt;CollectionItem&gt;&gt;</code>
+### amce.getItemListInCollection(options) ⇒ <code>Promise.&lt;Array.&lt;CollectionItem&gt;&gt;</code>
 Get item list in collection from AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -249,7 +251,7 @@ Get item list in collection from AMCE
 
 <a name="AMCE+getItem"></a>
 
-### amcE.getItem(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getItem(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Get item data from AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -262,7 +264,7 @@ Get item data from AMCE
 
 <a name="AMCE+storeItem"></a>
 
-### amcE.storeItem(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.storeItem(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Store item to AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -303,7 +305,7 @@ Store item to AMCE
 ```
 <a name="AMCE+deleteItem"></a>
 
-### amcE.deleteItem(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.deleteItem(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Delete item data from AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -316,11 +318,10 @@ Delete item data from AMCE
 
 <a name="AMCE+createRequestOptions"></a>
 
-### amcE.createRequestOptions(options) ⇒ <code>object</code>
+### amce.createRequestOptions(options) ⇒ [<code>Promise.&lt;RequestOptions&gt;</code>](#RequestOptions)
 Create api request options for AMCE Custom API
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
-**Returns**: <code>object</code> - httpRequestOption to be used in Smartface request  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -331,13 +332,13 @@ Create api request options for AMCE Custom API
 
 <a name="AMCE+getAppPolicies"></a>
 
-### amcE.getAppPolicies() ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getAppPolicies() ⇒ <code>Promise.&lt;object&gt;</code>
 Get application policies from AMCE
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
 <a name="AMCE+getDeviceLocationsByName"></a>
 
-### amcE.getDeviceLocationsByName(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getDeviceLocationsByName(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Get Device Location List by Name
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -349,7 +350,7 @@ Get Device Location List by Name
 
 <a name="AMCE+getDeviceLocationsById"></a>
 
-### amcE.getDeviceLocationsById(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getDeviceLocationsById(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Get Device Location List by Id
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -361,7 +362,7 @@ Get Device Location List by Id
 
 <a name="AMCE+getPlaceByName"></a>
 
-### amcE.getPlaceByName(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getPlaceByName(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Get Places List by Name
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -373,7 +374,7 @@ Get Places List by Name
 
 <a name="AMCE+getPlaceById"></a>
 
-### amcE.getPlaceById(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getPlaceById(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Get Places List by Id,
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -385,7 +386,7 @@ Get Places List by Id,
 
 <a name="AMCE+getAssetByName"></a>
 
-### amcE.getAssetByName(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getAssetByName(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Get Asset List by Name
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -397,7 +398,7 @@ Get Asset List by Name
 
 <a name="AMCE+getAssetById"></a>
 
-### amcE.getAssetById(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getAssetById(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Get Asset List by Id
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -409,7 +410,7 @@ Get Asset List by Id
 
 <a name="AMCE+getLocationList"></a>
 
-### amcE.getLocationList(options) ⇒ <code>Promise.&lt;object&gt;</code>
+### amce.getLocationList(options) ⇒ <code>Promise.&lt;object&gt;</code>
 Get Location List Base Function
 
 **Kind**: instance method of [<code>AMCE</code>](#AMCE)  
@@ -461,4 +462,15 @@ Get Location List Base Function
 | createdOn | <code>string</code> | item createdOn |
 | modifiedBy | <code>string</code> | item modifiedBy |
 | modifiedOn | <code>string</code> | item modifiedOn |
+
+<a name="RequestOptions"></a>
+
+## RequestOptions : <code>object</code>
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type |
+| --- | --- |
+| url | <code>string</code> | 
+| headers | <code>object</code> | 
 
