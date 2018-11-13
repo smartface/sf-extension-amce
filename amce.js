@@ -39,7 +39,7 @@ class AMCE {
             }
         });
         privates.set(this, {
-            backendID: options.backendId,
+            backendId: options.backendId,
             deviceToken: null,
             baseUrl: options.baseUrl,
             anonymousKey: options.anonymousKey || "",
@@ -537,7 +537,8 @@ class AMCE {
         const headers = {
             'Content-Type': 'application/json',
             'Authorization': p.authorization,
-            'Oracle-Mobile-API-Version': version
+            'Oracle-Mobile-API-Version': version,
+            'oracle-mobile-backend-id': p.backendId
         };
         return new Promise((resolve, reject) => {
             this.loginWithOAuth()
