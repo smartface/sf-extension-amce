@@ -716,15 +716,13 @@ class AMCE {
                 return resolve();
 
             // Need to create a new ServiceCall instance because base url is different
-            (new ServiceCall({
-                baseUrl: p.oAuthTokenEndpoint,
-                logEnabled: LOG_ENABLED,
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-                    'Authorization': `Basic ${Base64.encode(p.clientId + ':' + p.clientSecret)}`,
-                }
-            }))
-            .request("", {
+            ServiceCall.request({
+                    url: p.oAuthTokenEndpoint,
+                    logEnabled: LOG_ENABLED,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+                        'Authorization': `Basic ${Base64.encode(p.clientId + ':' + p.clientSecret)}`,
+                    },
                     method: "POST",
                     body: `grant_type=client_credentials&scope=${p.baseUrl}urn:opc:resource:consumer::all`,
                 })
