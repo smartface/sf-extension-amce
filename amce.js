@@ -534,15 +534,17 @@ class AMCE {
         const p = privates.get(this);
         const { version = "1.0", apiName, endpointPath } = options;
         const url = `${p.baseUrl}/mobile/custom/${apiName}/${endpointPath}`;
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': p.authorization,
-            'Oracle-Mobile-API-Version': version,
-            'oracle-mobile-backend-id': p.backendId
-        };
         return new Promise((resolve, reject) => {
             this.loginWithOAuth()
-                .then(resolve({ url, headers }))
+                .then(() => resolve({
+                    url,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': p.authorization,
+                        'Oracle-Mobile-API-Version': version,
+                        'oracle-mobile-backend-id': p.backendId
+                    }
+                }))
                 .catch(reject);
         });
     }
@@ -728,8 +730,8 @@ class AMCE {
                 })
                 .then(response => {
                     let tokenRetrieved = !!response.access_token;
-                    tokenRetrieved ? resolve(response) : reject(response);
                     tokenRetrieved && (p.authorization = `Bearer ${response.access_token}`);
+                    tokenRetrieved ? resolve(response) : reject(response);
                 })
                 .catch(reject);
         });
