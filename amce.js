@@ -6,7 +6,6 @@ const privates = new WeakMap();
 const Data = require('sf-core/data');
 const ServiceCall = require("sf-extension-utils/lib/service-call");
 const AMCE_VERSION = "1.0";
-const LOG_ENABLED = true;
 const amceDeviceId = Data.getStringVariable("amce-deviceId") || (function() {
     var id = uuid();
     Data.setStringVariable("amce-deviceId", id);
@@ -21,18 +20,19 @@ require("sf-extension-utils/lib/base/timers"); // Corrects setTimeout & setInter
  * @param {object} options - init object
  * @param {string} options.baseUrl - AMCE Base URL
  * @param {string} options.backendId - AMCE Backend Id
- * @param {string} options.androidApplicationKey - AMCE Android Client Key
- * @param {string} options.iOSApplicationKey - AMCE iOS Client Key
  * @param {string} options.anonymousKey - AMCE Basic Anonymous Key
  * @param {string} options.oAuthTokenEndpoint - AMCE OAuth Token Endpoint (optional, needed if OAuth to be used)
  * @param {string} options.clientId - AMCE Client Id (optional, needed if OAuth to be used)
  * @param {string} options.clientSecret - AMCE Client Secret (optional, needed if OAuth to be used)
+ * @param {string} options.androidApplicationKey - AMCE Android Client Key
+ * @param {string} options.iOSApplicationKey - AMCE iOS Client Key
+ * @param {boolean} [options.logEnabled=false] - AMCE http requests are being logged or not
  */
 class AMCE {
     constructor(options) {
         var sc = new ServiceCall({
             baseUrl: options.baseUrl,
-            logEnabled: LOG_ENABLED,
+            logEnabled: options.logEnabled || false,
             headers: {
                 'Oracle-Mobile-API-Version': AMCE_VERSION,
                 'Oracle-Mobile-Backend-ID': options.backendId,
@@ -51,6 +51,7 @@ class AMCE {
             clientSecret: options.clientSecret,
             autoFlushEventsTimerId: null,
             eventStore: [],
+            logEnabled: options.logEnabled || false,
             sc
         });
     }
@@ -718,7 +719,7 @@ class AMCE {
             // Need to create a new ServiceCall instance because base url is different
             ServiceCall.request({
                     url: p.oAuthTokenEndpoint,
-                    logEnabled: LOG_ENABLED,
+                    logEnabled: p.logEnabled,
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
                         'Authorization': `Basic ${Base64.encode(p.clientId + ':' + p.clientSecret)}`,
