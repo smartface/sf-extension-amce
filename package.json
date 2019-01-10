@@ -33,5 +33,8 @@
   ],
   "bugs": {
     "url": "https://github.com/smartface/sf-extension-amce/issues"
+  },
+  "dependencies": {
+    "jwt-decode": "^2.2.0"
   }
 }

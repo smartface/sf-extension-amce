@@ -11,6 +11,8 @@ const amceDeviceId = Data.getStringVariable("amce-deviceId") || (function() {
     Data.setStringVariable("amce-deviceId", id);
     return id;
 })();
+var jwtDecode = require('jwt-decode');
+
 
 require("sf-extension-utils/lib/base/timers"); // Corrects setTimeout & setInterval
 
@@ -713,8 +715,12 @@ class AMCE {
     loginWithOAuth() {
         const p = privates.get(this);
         return new Promise((resolve, reject) => {
-            if (p.authorization)
-                return resolve();
+            if (p.token) {
+                let dateNow = (new Date()).getTime();
+                if (p.token.exp < dateNow)
+                    return resolve();
+            }
+
 
             // Need to create a new ServiceCall instance because base url is different
             ServiceCall.request({
@@ -729,8 +735,13 @@ class AMCE {
                 })
                 .then(response => {
                     let tokenRetrieved = !!response.access_token;
-                    tokenRetrieved && (p.authorization = `Bearer ${response.access_token}`);
-                    tokenRetrieved ? resolve(response) : reject(response);
+                    if (tokenRetrieved) {
+                        p.authorization = `Bearer ${response.access_token}`;
+                        p.token = jwtDecode(response.access_token);
+                        resolve(response);
+                    }
+                    else
+                        reject(response);
                 })
                 .catch(reject);
         });
