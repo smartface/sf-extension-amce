@@ -716,11 +716,10 @@ class AMCE {
         const p = privates.get(this);
         return new Promise((resolve, reject) => {
             if (p.token) {
-                let dateNow = (new Date()).getTime();
-                if (p.token.exp < dateNow)
+                let dateNow = Math.round((new Date()).getTime() / 1000) + 120; //add 2 minutes of buffer
+                if (p.token.exp > dateNow)
                     return resolve();
             }
-
 
             // Need to create a new ServiceCall instance because base url is different
             ServiceCall.request({
