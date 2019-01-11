@@ -720,6 +720,8 @@ class AMCE {
                 if (p.token.exp > dateNow)
                     return resolve();
             }
+            if (!p.oAuthTokenEndpoint && p.authorization)
+                return resolve();
 
             // Need to create a new ServiceCall instance because base url is different
             ServiceCall.request({
