@@ -33,7 +33,7 @@ require("sf-extension-utils/lib/base/timers"); // Corrects setTimeout & setInter
  * @param {string} options.androidApplicationKey - AMCE Android Client Key
  * @param {string} options.iOSApplicationKey - AMCE iOS Client Key
  * @param {boolean} [options.logEnabled=false] - AMCE http requests are being logged or not
- * @param {boolean} [options.offline=false]
+ * @param {boolean} [options.offline=false] - Support offline data sync
  */
 class AMCE {
     constructor(options) {
@@ -47,7 +47,7 @@ class AMCE {
         };
         var onlineServiceCall = !options.offline && new ServiceCall(serviceCallOptions);
         var offlineRequestServiceCall = options.offline && new OfflineRequestServiceCall(serviceCallOptions);
-        var offlineResponseServiceCall = options.offline && new OfflineResponseServiceCall(serviceCallOptions); // Stores response
+        var offlineResponseServiceCall = options.offline && new OfflineResponseServiceCall(serviceCallOptions);
         privates.set(this, {
             backendId: options.backendId,
             deviceToken: null,

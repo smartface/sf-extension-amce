@@ -59,17 +59,19 @@ Creates new instace of AMCE
 
 ### new AMCE(options)
 
-| Param | Type | Description |
-| --- | --- | --- |
-| options | <code>object</code> | init object |
-| options.baseUrl | <code>string</code> | AMCE Base URL |
-| options.backendId | <code>string</code> | AMCE Backend Id |
-| options.androidApplicationKey | <code>string</code> | AMCE Android Client Key |
-| options.iOSApplicationKey | <code>string</code> | AMCE iOS Client Key |
-| options.anonymousKey | <code>string</code> | AMCE Basic Anonymous Key |
-| options.oAuthTokenEndpoint | <code>string</code> | AMCE OAuth Token Endpoint (optional, needed if OAuth to be used) |
-| options.clientId | <code>string</code> | AMCE Client Id (optional, needed if OAuth to be used) |
-| options.clientSecret | <code>string</code> | AMCE Client Secret (optional, needed if OAuth to be used) |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| options | <code>object</code> |  | init object |
+| options.baseUrl | <code>string</code> |  | AMCE Base URL |
+| options.backendId | <code>string</code> |  | AMCE Backend Id |
+| options.anonymousKey | <code>string</code> |  | AMCE Basic Anonymous Key |
+| options.oAuthTokenEndpoint | <code>string</code> |  | AMCE OAuth Token Endpoint (optional, needed if OAuth to be used) |
+| options.clientId | <code>string</code> |  | AMCE Client Id (optional, needed if OAuth to be used) |
+| options.clientSecret | <code>string</code> |  | AMCE Client Secret (optional, needed if OAuth to be used) |
+| options.androidApplicationKey | <code>string</code> |  | AMCE Android Client Key |
+| options.iOSApplicationKey | <code>string</code> |  | AMCE iOS Client Key |
+| [options.logEnabled] | <code>boolean</code> | <code>false</code> | AMCE http requests are being logged or not |
+| [options.offline] | <code>boolean</code> | <code>false</code> | Support offline data sync |
 
 <a name="AMCE+autoFlushEventsStarted"></a>
 
