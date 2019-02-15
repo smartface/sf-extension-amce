@@ -5,14 +5,18 @@ const Base64 = new Base64_Helper();
 const privates = new WeakMap();
 const Data = require('sf-core/data');
 const ServiceCall = require("sf-extension-utils/lib/service-call");
+const {
+    OfflineRequestServiceCall,
+    OfflineResponseServiceCall
+} = require("sf-extension-utils/lib/service-call-offline");
+const guid = require("sf-extension-utils/lib/guid");
 const AMCE_VERSION = "1.0";
 const amceDeviceId = Data.getStringVariable("amce-deviceId") || (function() {
-    var id = uuid();
+    var id = guid();
     Data.setStringVariable("amce-deviceId", id);
     return id;
 })();
-var jwtDecode = require('jwt-decode');
-
+const jwtDecode = require('jwt-decode');
 
 require("sf-extension-utils/lib/base/timers"); // Corrects setTimeout & setInterval
 
@@ -29,23 +33,27 @@ require("sf-extension-utils/lib/base/timers"); // Corrects setTimeout & setInter
  * @param {string} options.androidApplicationKey - AMCE Android Client Key
  * @param {string} options.iOSApplicationKey - AMCE iOS Client Key
  * @param {boolean} [options.logEnabled=false] - AMCE http requests are being logged or not
+ * @param {boolean} [options.offline=false]
  */
 class AMCE {
     constructor(options) {
-        var sc = new ServiceCall({
+        var serviceCallOptions = {
             baseUrl: options.baseUrl,
             logEnabled: options.logEnabled || false,
             headers: {
                 'Oracle-Mobile-API-Version': AMCE_VERSION,
                 'Oracle-Mobile-Backend-ID': options.backendId,
             }
-        });
+        };
+        var onlineServiceCall = !options.offline && new ServiceCall(serviceCallOptions);
+        var offlineRequestServiceCall = options.offline && new OfflineRequestServiceCall(serviceCallOptions);
+        var offlineResponseServiceCall = options.offline && new OfflineResponseServiceCall(serviceCallOptions); // Stores response
         privates.set(this, {
             backendId: options.backendId,
             deviceToken: null,
             baseUrl: options.baseUrl,
             anonymousKey: options.anonymousKey || "",
-            authorization: options.anonymousKey ? "Basic " + options.anonymousKey : "",
+            authorization: options.anonymousKey ? `Basic ${options.anonymousKey}` : "",
             androidApplicationKey: options.androidApplicationKey,
             iOSApplicationKey: options.iOSApplicationKey,
             oAuthTokenEndpoint: options.oAuthTokenEndpoint,
@@ -54,7 +62,10 @@ class AMCE {
             autoFlushEventsTimerId: null,
             eventStore: [],
             logEnabled: options.logEnabled || false,
-            sc
+            offline: options.offline || false,
+            onlineServiceCall,
+            offlineRequestServiceCall,
+            offlineResponseServiceCall
         });
     }
 
@@ -95,12 +106,13 @@ class AMCE {
         const p = privates.get(this);
         const { username, password, useOAuth } = options;
         const token = 'Basic ' + Base64.encode(username + ':' + password);
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
 
         if (useOAuth)
             return this.loginWithOAuth();
 
         return new Promise((resolve, reject) => {
-            p.sc.request(`/mobile/platform/users/${username}`, {
+            serviceCall.request(`/mobile/platform/users/${username}`, {
                     method: "GET",
                     headers: {
                         'Content-Type': 'application/json; charset=utf-8',
@@ -150,6 +162,7 @@ class AMCE {
         const { packageName, version } = options;
         const isIOS = System.OS === 'iOS';
         const amce = this;
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
 
         return new Promise((resolve, reject) => {
             Notications.registerForPushNotifications(e => {
@@ -157,8 +170,8 @@ class AMCE {
                 amce.notificationToken = e.token;
 
                 this.loginWithOAuth()
-                    .then(_ => {
-                        return p.sc.request(`/mobile/platform/devices/register`, {
+                    .then(() => {
+                        return serviceCall.request(`/mobile/platform/devices/register`, {
                             method: "POST",
                             body: {
                                 notificationToken: p.deviceToken,
@@ -194,12 +207,13 @@ class AMCE {
         const p = privates.get(this);
         const { packageName } = options;
         const isIOS = System.OS === 'iOS';
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
 
         Notications.unregisterForPushNotifications();
 
         this.loginWithOAuth()
-            .then(_ => {
-                return p.sc.request(`/mobile/platform/devices/deregister`, {
+            .then(() => {
+                return serviceCall.request(`/mobile/platform/devices/deregister`, {
                     method: "POST",
                     body: {
                         notificationToken: p.deviceToken,
@@ -229,14 +243,15 @@ class AMCE {
      */
     sendAnalytic(options) {
         const p = privates.get(this);
-        const { deviceId = amceDeviceId, sessionId = uuid(), body } = options;
+        const { deviceId = amceDeviceId, sessionId = guid(), body } = options;
         const isIOS = System.OS === 'iOS';
         const applicationKey = isIOS ? p.iOSApplicationKey : p.androidApplicationKey;
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
 
         return new Promise((resolve, reject) => {
             this.loginWithOAuth()
-                .then(_ => {
-                    return p.sc.request(`/mobile/platform/analytics/events`, {
+                .then(() => {
+                    return serviceCall.request(`/mobile/platform/analytics/events`, {
                         method: "POST",
                         body,
                         headers: {
@@ -353,10 +368,12 @@ class AMCE {
      */
     getCollectionList() {
         const p = privates.get(this);
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
+
         return new Promise((resolve, reject) => {
             this.loginWithOAuth()
-                .then(_ => {
-                    return p.sc.request(`/mobile/platform/storage/collections`, {
+                .then(() => {
+                    return serviceCall.request(`/mobile/platform/storage/collections`, {
                         method: "GET",
                         headers: {
                             'Content-Type': 'application/json; charset=utf-8',
@@ -399,10 +416,12 @@ class AMCE {
     getItemListInCollection(options) {
         const p = privates.get(this);
         const collectionId = options ? options.collectionId : options;
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
+
         return new Promise((resolve, reject) => {
             this.loginWithOAuth()
-                .then(_ => {
-                    return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects`, {
+                .then(() => {
+                    return serviceCall.request(`/mobile/platform/storage/collections/${collectionId}/objects`, {
                         method: "GET",
                         headers: {
                             'Content-Type': 'application/json; charset=utf-8',
@@ -439,9 +458,11 @@ class AMCE {
     getItem(options) {
         const p = privates.get(this);
         const { collectionId, itemId } = options;
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
+
         return this.loginWithOAuth()
-            .then(_ => {
-                return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects/${itemId}`, {
+            .then(() => {
+                return serviceCall.request(`/mobile/platform/storage/collections/${collectionId}/objects/${itemId}`, {
                     method: "GET",
                     headers: {
                         'Content-Type': 'application/json; charset=utf-8',
@@ -487,9 +508,11 @@ class AMCE {
     storeItem(options) {
         const p = privates.get(this);
         const { collectionId, itemName, base64EncodeData, contentType } = options;
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
+
         return this.loginWithOAuth()
-            .then(_ => {
-                return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects`, {
+            .then(() => {
+                return serviceCall.request(`/mobile/platform/storage/collections/${collectionId}/objects`, {
                     method: "POST",
                     body: base64EncodeData,
                     headers: {
@@ -513,9 +536,11 @@ class AMCE {
         const p = privates.get(this);
         const { collectionId, itemId } = options;
         const random = Math.floor(Math.random() * 100000); // Added due to the SUPDEV-470 workaround
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
+
         return this.loginWithOAuth()
-            .then(_ => {
-                return p.sc.request(`/mobile/platform/storage/collections/${collectionId}/objects/${itemId}?v=${random}`, {
+            .then(() => {
+                return serviceCall.request(`/mobile/platform/storage/collections/${collectionId}/objects/${itemId}?v=${random}`, {
                     method: "DELETE",
                     headers: {
                         'Authorization': p.authorization
@@ -565,9 +590,11 @@ class AMCE {
      */
     getAppPolicies() {
         const p = privates.get(this);
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
+
         return this.loginWithOAuth()
-            .then(_ => {
-                return p.sc.request(`/mobile/platform/appconfig/client`, {
+            .then(() => {
+                return serviceCall.request(`/mobile/platform/appconfig/client`, {
                     method: "GET",
                     headers: {
                         'Content-Type': 'application/json',
@@ -694,14 +721,15 @@ class AMCE {
         const p = privates.get(this);
         const { key, value, pathStr, isQuery } = options;
         var url = `/mobile/platform/location/${pathStr}`;
+        const serviceCall = p.offline ? p.offlineResponseServiceCall : p.onlineServiceCall;
 
         url += isQuery ?
             '?' + key + '=' + value :
             '/' + value;
 
         return this.loginWithOAuth()
-            .then(_ => {
-                return p.sc.request(url, {
+            .then(() => {
+                return serviceCall.request(url, {
                     method: "GET",
                     headers: {
                         'Content-Type': 'application/json',
@@ -714,6 +742,20 @@ class AMCE {
 
     loginWithOAuth() {
         const p = privates.get(this);
+        const serviceCallOptions = {
+            url: p.oAuthTokenEndpoint,
+            logEnabled: p.logEnabled,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+                'Authorization': `Basic ${Base64.encode(p.clientId + ':' + p.clientSecret)}`,
+            }
+        };
+
+        // Need to create a new ServiceCall instance because base url is different
+        const serviceCall = p.offline ?
+            new OfflineResponseServiceCall(serviceCallOptions) :
+            new ServiceCall(serviceCallOptions);
+
         return new Promise((resolve, reject) => {
             if (p.token) {
                 let dateNow = Math.round((new Date()).getTime() / 1000) + 120; //add 2 minutes of buffer
@@ -723,14 +765,7 @@ class AMCE {
             if (!p.oAuthTokenEndpoint && p.authorization)
                 return resolve();
 
-            // Need to create a new ServiceCall instance because base url is different
-            ServiceCall.request({
-                    url: p.oAuthTokenEndpoint,
-                    logEnabled: p.logEnabled,
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-                        'Authorization': `Basic ${Base64.encode(p.clientId + ':' + p.clientSecret)}`,
-                    },
+            serviceCall.request("", {
                     method: "POST",
                     body: `grant_type=client_credentials&scope=${p.baseUrl}urn:opc:resource:consumer::all`,
                 })
@@ -750,11 +785,3 @@ class AMCE {
 }
 
 module.exports = AMCE;
-
-function uuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0,
-            v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
