@@ -743,7 +743,7 @@ class AMCE {
     loginWithOAuth() {
         const p = privates.get(this);
         const serviceCallOptions = {
-            url: p.oAuthTokenEndpoint,
+            baseUrl: p.oAuthTokenEndpoint,
             logEnabled: p.logEnabled,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
