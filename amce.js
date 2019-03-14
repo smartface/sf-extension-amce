@@ -6,6 +6,7 @@ const privates = new WeakMap();
 const Data = require('sf-core/data');
 const ServiceCall = require("sf-extension-utils/lib/service-call");
 const {
+    init,
     OfflineRequestServiceCall,
     OfflineResponseServiceCall
 } = require("sf-extension-utils/lib/service-call-offline");
@@ -23,7 +24,7 @@ require("sf-extension-utils/lib/base/timers"); // Corrects setTimeout & setInter
 /**
  * Creates new instace of AMCE
  * @class
- * @param {object} options - init object
+ * @param {object} options
  * @param {string} options.baseUrl - AMCE Base URL
  * @param {string} options.backendId - AMCE Backend Id
  * @param {string} options.anonymousKey - AMCE Basic Anonymous Key
@@ -45,6 +46,7 @@ class AMCE {
                 'Oracle-Mobile-Backend-ID': options.backendId,
             }
         };
+        options.offline && init();
         var onlineServiceCall = !options.offline && new ServiceCall(serviceCallOptions);
         var offlineRequestServiceCall = options.offline && new OfflineRequestServiceCall(serviceCallOptions);
         var offlineResponseServiceCall = options.offline && new OfflineResponseServiceCall(serviceCallOptions);
