@@ -61,7 +61,7 @@ Creates new instace of AMCE
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| options | <code>object</code> |  | init object |
+| options | <code>object</code> |  |  |
 | options.baseUrl | <code>string</code> |  | AMCE Base URL |
 | options.backendId | <code>string</code> |  | AMCE Backend Id |
 | options.anonymousKey | <code>string</code> |  | AMCE Basic Anonymous Key |
