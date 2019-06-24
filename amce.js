@@ -760,11 +760,12 @@ class AMCE {
 
         return new Promise((resolve, reject) => {
             if (p.token) {
-                let dateNow = Math.round((new Date()).getTime() / 1000) + 120; //add 2 minutes of buffer
-                if (p.token.exp > dateNow)
+                let dateNow = Math.round((new Date()).getTime() / 1000) + 120; // Add 2 minutes of buffer
+                let tokenNotExpired = p.token.exp > dateNow;
+                if (tokenNotExpired)
                     return resolve();
             }
-            if (!p.oAuthTokenEndpoint && p.authorization)
+            if (!p.oAuthTokenEndpoint)
                 return resolve();
 
             serviceCall.request("", {
