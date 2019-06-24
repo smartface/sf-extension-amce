@@ -1,6 +1,6 @@
 {
   "name": "sf-extension-amce",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Oracle AMCE Plugin for Smartface Native Framework",
   "main": "amce.js",
   "repository": {
